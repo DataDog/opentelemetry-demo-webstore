@@ -247,6 +247,9 @@ func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderReq
 	shippingTrackingAttribute := attribute.String("app.shipping.tracking.id", shippingTrackingID)
 	span.AddEvent("shipped", trace.WithAttributes(shippingTrackingAttribute))
 
+	_, childSpan1 := tracer.Start(ctx, "callPeerService", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("peer.service", "demo-peer-service")))
+	childSpan1.End()
+
 	_ = cs.emptyUserCart(ctx, req.UserId)
 
 	orderResult := &pb.OrderResult{
@@ -312,6 +315,9 @@ func (cs *checkoutService) prepareOrderItemsAndShippingQuoteFromCart(ctx context
 	out.shippingCostLocalized = shippingPrice
 	out.cartItems = cartItems
 	out.orderItems = orderItems
+
+	_, childSpan2 := tracer.Start(ctx, "updateCache", trace.WithSpanKind(trace.SpanKindClient), trace.WithAttributes(attribute.String("db.system", "redis")))
+	childSpan2.End()
 
 	var totalCart int32
 	for _, ci := range cartItems {
