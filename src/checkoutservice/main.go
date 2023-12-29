@@ -101,7 +101,7 @@ func initTracerProvider() *sdktrace.TracerProvider {
 	return tp
 }
 
-func initDDTracerProvider() ddotel.TracerProvider {
+func initDDTracerProvider() *ddotel.TracerProvider {
 	tp := ddotel.NewTracerProvider(
 		ddtracer.WithAgentAddr(""),
 	)
