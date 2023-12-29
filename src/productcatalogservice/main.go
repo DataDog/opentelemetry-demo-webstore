@@ -33,6 +33,8 @@ import (
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"google.golang.org/protobuf/encoding/protojson"
 
@@ -89,6 +91,15 @@ func initTracerProvider() *sdktrace.TracerProvider {
 	return tp
 }
 
+func initDDTracerProvider() *ddotel.TracerProvider {
+	tp := ddotel.NewTracerProvider(
+		ddtracer.WithAgentAddr(""),
+	)
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	return tp
+}
+
 func initMeterProvider() *sdkmetric.MeterProvider {
 	ctx := context.Background()
 
@@ -100,7 +111,7 @@ func initMeterProvider() *sdkmetric.MeterProvider {
 	mp := sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter)),
 		sdkmetric.WithResource(initResource()),
-		sdkmetric.WithView(			
+		sdkmetric.WithView(
 			sdkmetric.NewView(
 				sdkmetric.Instrument{Scope: instrumentation.Scope{Name: "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"}},
 				sdkmetric.Stream{
@@ -128,6 +139,22 @@ func disallowedAttr(v ...string) attribute.Filter {
 }
 
 func main() {
+	if tracerV := os.Getenv("TRACER"); tracerV == "OTEL" {
+		tp := initTracerProvider()
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+	} else {
+		tp := initDDTracerProvider()
+		defer func() {
+			if err := tp.Shutdown(); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+	}
+
 	tp := initTracerProvider()
 	defer func() {
 		if err := tp.Shutdown(context.Background()); err != nil {
