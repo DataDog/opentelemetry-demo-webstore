@@ -78,7 +78,7 @@ func initTracerProvider() (*sdktrace.TracerProvider, error) {
 	return tp, nil
 }
 
-func initDDTracerProvider() ddotel.TracerProvider {
+func initDDTracerProvider() *ddotel.TracerProvider {
 	tp := ddotel.NewTracerProvider(
 		ddtracer.WithAgentAddr(""),
 	)
