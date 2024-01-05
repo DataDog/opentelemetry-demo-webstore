@@ -7,14 +7,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.opentelemetry.io/otel/sdk/instrumentation"
-	semconv "go.opentelemetry.io/otel/semconv/v1.19.0"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
+
+	"go.opentelemetry.io/otel/sdk/instrumentation"
+	semconv "go.opentelemetry.io/otel/semconv/v1.19.0"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -38,6 +40,8 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	pb "github.com/open-telemetry/opentelemetry-demo/src/checkoutservice/genproto/oteldemo"
 	"github.com/open-telemetry/opentelemetry-demo/src/checkoutservice/kafka"
@@ -100,6 +104,18 @@ func initTracerProvider() *sdktrace.TracerProvider {
 	return tp
 }
 
+func initDDTracerProvider() *ddotel.TracerProvider {
+	opts := []ddtracer.StartOption{ddtracer.WithEnv("otel-ingest-staging-dd")}
+	if endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"); endpoint != "" {
+		agentAddr := strings.ReplaceAll(endpoint, "4317", "8126")
+		opts = append(opts, ddtracer.WithAgentAddr(agentAddr))
+	}
+	tp := ddotel.NewTracerProvider(opts...)
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	return tp
+}
+
 func initMeterProvider() *sdkmetric.MeterProvider {
 	ctx := context.Background()
 
@@ -136,12 +152,23 @@ func main() {
 	var port string
 	mustMapEnv(&port, "CHECKOUT_SERVICE_PORT")
 
-	tp := initTracerProvider()
-	defer func() {
-		if err := tp.Shutdown(context.Background()); err != nil {
-			log.Printf("Error shutting down tracer provider: %v", err)
-		}
-	}()
+	if envTag := os.Getenv(string(semconv.DeploymentEnvironmentKey)); envTag == "otel-ingest-staging" {
+		tp := initDDTracerProvider()
+		defer func() {
+			if err := tp.Shutdown(); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+		tracer = tp.Tracer("checkoutservice")
+	} else {
+		tp := initTracerProvider()
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+		tracer = tp.Tracer("checkoutservice")
+	}
 
 	mp := initMeterProvider()
 	defer func() {
@@ -154,8 +181,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	tracer = tp.Tracer("checkoutservice")
 
 	svc := new(checkoutService)
 	mustMapEnv(&svc.shippingSvcAddr, "SHIPPING_SERVICE_ADDR")

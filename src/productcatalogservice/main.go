@@ -22,6 +22,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/sdk/instrumentation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+	semconv "go.opentelemetry.io/otel/semconv/v1.19.0"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"go.opentelemetry.io/otel"
@@ -33,6 +34,8 @@ import (
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"google.golang.org/protobuf/encoding/protojson"
 
@@ -89,6 +92,18 @@ func initTracerProvider() *sdktrace.TracerProvider {
 	return tp
 }
 
+func initDDTracerProvider() *ddotel.TracerProvider {
+	opts := []ddtracer.StartOption{ddtracer.WithEnv("otel-ingest-staging-dd")}
+	if endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"); endpoint != "" {
+		agentAddr := strings.ReplaceAll(endpoint, "4317", "8126")
+		opts = append(opts, ddtracer.WithAgentAddr(agentAddr))
+	}
+	tp := ddotel.NewTracerProvider(opts...)
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	return tp
+}
+
 func initMeterProvider() *sdkmetric.MeterProvider {
 	ctx := context.Background()
 
@@ -128,6 +143,22 @@ func disallowedAttr(v ...string) attribute.Filter {
 }
 
 func main() {
+	if envTag := os.Getenv(string(semconv.DeploymentEnvironmentKey)); envTag == "otel-ingest-staging" {
+		tp := initDDTracerProvider()
+		defer func() {
+			if err := tp.Shutdown(); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+	} else {
+		tp := initTracerProvider()
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+	}
+
 	tp := initTracerProvider()
 	defer func() {
 		if err := tp.Shutdown(context.Background()); err != nil {

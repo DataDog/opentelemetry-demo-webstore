@@ -21,6 +21,9 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.19.0"
+	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
+	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/open-telemetry/opentelemetry-demo/src/accountingservice/kafka"
 )
@@ -76,16 +79,37 @@ func initTracerProvider() (*sdktrace.TracerProvider, error) {
 	return tp, nil
 }
 
-func main() {
-	tp, err := initTracerProvider()
-	if err != nil {
-		log.Fatal(err)
+func initDDTracerProvider() *ddotel.TracerProvider {
+	opts := []ddtracer.StartOption{ddtracer.WithEnv("otel-ingest-staging-dd")}
+	if endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"); endpoint != "" {
+		agentAddr := strings.ReplaceAll(endpoint, "4317", "8126")
+		opts = append(opts, ddtracer.WithAgentAddr(agentAddr))
 	}
-	defer func() {
-		if err := tp.Shutdown(context.Background()); err != nil {
-			log.Printf("Error shutting down tracer provider: %v", err)
+	tp := ddotel.NewTracerProvider(opts...)
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	return tp
+}
+
+func main() {
+	if envTag := os.Getenv(string(semconv.DeploymentEnvironmentKey)); envTag == "otel-ingest-staging" {
+		tp := initDDTracerProvider()
+		defer func() {
+			if err := tp.Shutdown(); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+	} else {
+		tp, err := initTracerProvider()
+		if err != nil {
+			log.Fatal(err)
 		}
-	}()
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+	}
 
 	var brokers string
 	mustMapEnv(&brokers, "KAFKA_SERVICE_ADDR")
