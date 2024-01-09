@@ -92,12 +92,9 @@ func initTracerProvider() *sdktrace.TracerProvider {
 }
 
 func initDDTracerProvider() *ddotel.TracerProvider {
-	opts := []ddtracer.StartOption{ddtracer.WithEnv("otel-ingest-staging-dd")}
-	if endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"); endpoint != "" {
-		agentAddr := strings.ReplaceAll(endpoint, "4317", "8126")
-		opts = append(opts, ddtracer.WithAgentAddr(agentAddr))
-	}
-	tp := ddotel.NewTracerProvider(opts...)
+	tp := ddotel.NewTracerProvider(
+		ddtracer.WithAgentAddr(fmt.Sprintf("%s:%s", os.Getenv("HOST_IP"), "8126")),
+	)
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	return tp
