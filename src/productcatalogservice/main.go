@@ -22,7 +22,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/sdk/instrumentation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.19.0"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"go.opentelemetry.io/otel"
@@ -143,7 +142,7 @@ func disallowedAttr(v ...string) attribute.Filter {
 }
 
 func main() {
-	if envTag := os.Getenv(string(semconv.DeploymentEnvironmentKey)); envTag == "otel-ingest-staging" {
+	if envTag := os.Getenv("OTEL_K8S_NAMESPACE"); envTag == "otel-ingest-staging" {
 		tp := initDDTracerProvider()
 		defer func() {
 			if err := tp.Shutdown(); err != nil {

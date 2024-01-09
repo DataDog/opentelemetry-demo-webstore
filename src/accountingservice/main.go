@@ -21,7 +21,6 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.19.0"
 	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
@@ -92,7 +91,7 @@ func initDDTracerProvider() *ddotel.TracerProvider {
 }
 
 func main() {
-	if envTag := os.Getenv(string(semconv.DeploymentEnvironmentKey)); envTag == "otel-ingest-staging" {
+	if envTag := os.Getenv("OTEL_K8S_NAMESPACE"); envTag == "otel-ingest-staging" {
 		tp := initDDTracerProvider()
 		defer func() {
 			if err := tp.Shutdown(); err != nil {

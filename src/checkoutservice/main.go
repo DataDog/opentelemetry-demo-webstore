@@ -152,7 +152,7 @@ func main() {
 	var port string
 	mustMapEnv(&port, "CHECKOUT_SERVICE_PORT")
 
-	if envTag := os.Getenv(string(semconv.DeploymentEnvironmentKey)); envTag == "otel-ingest-staging" {
+	if envTag := os.Getenv("OTEL_K8S_NAMESPACE"); envTag == "otel-ingest-staging" {
 		tp := initDDTracerProvider()
 		defer func() {
 			if err := tp.Shutdown(); err != nil {
