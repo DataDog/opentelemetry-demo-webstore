@@ -50,6 +50,7 @@ spec:
                     operator: In
                     values:
                       - ng-4
+                      - ng-7
       initContainers:
         - command:
           - sh

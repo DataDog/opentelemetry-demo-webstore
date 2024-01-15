@@ -35,6 +35,8 @@ default:
       valueFrom:
         fieldRef:
           fieldPath: status.hostIP
+    - name: DD_AGENT_HOST
+      value: $(HOST_IP)
     - name: OTEL_COLLECTOR_NAME
       value: $(HOST_IP)
     - name: OTEL_EXPORTER_OTLP_ENDPOINT

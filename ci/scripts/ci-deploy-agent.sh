@@ -12,18 +12,17 @@ clusterName=$CLUSTER_NAME
 clusterArn=$CLUSTER_ARN
 region=$REGION
 namespace=$NAMESPACE
+releaseName=$RELEASE_NAME
+ddValues=$DD_VALUES
 values=$VALUES
 
 install_agent() {
-  # Set the namespace and release name
-  release_name="datadog-agent"
-
   # if repo already exists, helm 3+ will skip
   helm repo add datadog https://helm.datadoghq.com
 
   # --install will run `helm install` if not already present.
-  helm upgrade "${release_name}" -n "${namespace}" datadog/datadog --install \
-    -f ./ci/datadog-agent-values.yaml \
+  helm upgrade "${releaseName}" -n "${namespace}" datadog/datadog --install \
+    -f "${ddValues}" \
     -f "${values}"
 }
 

@@ -4,15 +4,11 @@ agents:
     tagSuffix: jmx
 datadog:
   apiKey: $DD_API_KEY
+  apm:
+    portEnabled: true
+    port: 8126
   logs:
     enabled: true
-  otlp:
-    receiver:
-      protocols:
-        grpc:
-          enabled: true
-        http:
-          enabled: true
   env:
     - name: DD_API_KEY
       valueFrom:
