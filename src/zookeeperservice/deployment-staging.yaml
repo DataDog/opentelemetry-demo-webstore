@@ -45,8 +45,7 @@ spec:
                   - key: alpha.eksctl.io/nodegroup-name
                     operator: In
                     values:
-                      - ng-4
-                      - ng-7
+                      - PLACEHOLDER_NODE_GROUP
       containers:
         - name: zookeeper
           image: confluentinc/cp-zookeeper:7.2.2

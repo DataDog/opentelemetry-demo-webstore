@@ -21,7 +21,7 @@ install_demo() {
   release_name="opentelemetry-demo"
 
   # Deploy zookeeper which is not a default component.
-  sed -i "s/PLACEHOLDER_NODE_GROUP/v$nodeGroup/g" ./src/zookeeperservice/deployment-staging.yaml
+  sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/zookeeperservice/deployment-staging.yaml
   kubectl apply -f ./src/zookeeperservice/deployment-staging.yaml -n "${namespace}"
 
   # if repo already exists, helm 3+ will skip
@@ -36,7 +36,7 @@ install_demo() {
   
   # Deploy java order producer which is not a default component.
   sed -i "s/PLACEHOLDER_COMMIT_SHA/v$CI_COMMIT_SHORT_SHA/g" ./src/orderproducerservice/deployment-staging.yaml
-  sed -i "s/PLACEHOLDER_NODE_GROUP/v$nodeGroup/g" ./src/orderproducerservice/deployment-staging.yaml
+  sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/orderproducerservice/deployment-staging.yaml
   kubectl apply -f ./src/orderproducerservice/deployment-staging.yaml -n "${namespace}"
 }
 

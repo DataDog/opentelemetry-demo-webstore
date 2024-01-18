@@ -49,8 +49,7 @@ spec:
                   - key: alpha.eksctl.io/nodegroup-name
                     operator: In
                     values:
-                      - ng-4
-                      - ng-7
+                      - PLACEHOLDER_NODE_GROUP
       initContainers:
         - command:
           - sh
