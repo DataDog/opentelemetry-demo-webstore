@@ -12,7 +12,6 @@ jobs:
   build_runner:
     runs-on: ubuntu-latest
     name: "Build Runner"
-    if: github.event.pull_request.merged == true
     steps:
       - name: metal-runner-action
         uses: equinix-labs/metal-action-runner@v0.1.1
