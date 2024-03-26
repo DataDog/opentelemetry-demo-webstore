@@ -1,8 +1,10 @@
 agents:
   image:
-    tag: 7.53.0-rc.1
-    tagSuffix: jmx
+    repository: docker.io/datadog/agent-dev
+    tag: stanley-liu-top-level-spans-poc-py3-jmx
+    doNotCheckTag: true
 datadog:
+  apiKey: $DD_API_KEY
   logs:
     enabled: true
   otlp:

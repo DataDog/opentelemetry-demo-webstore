@@ -1,8 +1,9 @@
 agents:
   image:
-    tag: 7.53.0-rc.1
+    tag: 7.52.0
     tagSuffix: jmx
 datadog:
+  apiKey: $DD_API_KEY
   logs:
     enabled: true
   otlp:
