@@ -1,6 +1,7 @@
 agents:
   image:
-    tag: 7.52.0
+    tag: 7.53.0-rc.1
+    tagSuffix: jmx
 datadog:
   apiKey: $DD_API_KEY
   logs:
