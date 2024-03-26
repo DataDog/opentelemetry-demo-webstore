@@ -9456,7 +9456,7 @@ spec:
       serviceAccountName: opentelemetry-demo
       containers:
         - name: ffspostgres
-          image: 'ghcr.io/open-telemetry/demo:1.7.0-ffspostgres'
+          image: 'postgres:14'
           imagePullPolicy: IfNotPresent
           ports:
           
