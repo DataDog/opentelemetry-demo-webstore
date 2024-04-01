@@ -21,3 +21,5 @@ datadog:
           name: datadog-secrets
           key: api-key
           optional: false
+    - name: DD_APM_FEATURES
+      value: "enable_otlp_compute_top_level_by_span_kind"
