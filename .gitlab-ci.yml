@@ -62,12 +62,6 @@ build-ci-image-emailservice:
     DOCKERFILE: src/emailservice/Dockerfile
     IMAGE_TAG_SUFFIX: emailservice
     CONTEXT: src/emailservice
-build-ci-image-featureflagservice:
-  !!merge <<: *build-ci-image
-  variables:
-    DOCKERFILE: src/featureflagservice/Dockerfile
-    IMAGE_TAG_SUFFIX: featureflagservice
-    CONTEXT: .
 build-ci-image-frauddetectionservice:
   !!merge <<: *build-ci-image
   variables:
