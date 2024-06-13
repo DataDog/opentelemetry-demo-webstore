@@ -15,13 +15,13 @@
 # limitations under the License.
 
 # https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
-FROM registry.ddbuild.io/images/mirror/dotnet:sdk-8.0.100-1 AS builder
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0.202 AS builder
 ARG TARGETARCH
 
 WORKDIR /usr/src/app/
 
 COPY ./src/cartservice/ ./
-COPY ./pb/ ./src/protos/
+COPY ./pb/ ./pb/
 
 RUN \
   RUNTIME_IDENTIIFER=linux-musl-x64; \
@@ -32,7 +32,7 @@ RUN \
 # -----------------------------------------------------------------------------
 
 # https://mcr.microsoft.com/v2/dotnet/runtime-deps/tags/list
-FROM registry.ddbuild.io/images/mirror/dotnet/runtime-deps:8.0.0-alpine3.18
+FROM mcr.microsoft.com/dotnet/runtime-deps:8.0.3-alpine3.19
 
 WORKDIR /usr/src/app/
 COPY --from=builder /cartservice/ ./

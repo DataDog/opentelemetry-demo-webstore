@@ -5,11 +5,11 @@
 FROM registry.ddbuild.io/images/mirror/confluentinc/cp-kafka:7.5.2
 
 USER root
-ARG version=2.0.0
-ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v$version/opentelemetry-javaagent.jar /tmp/opentelemetry-javaagent.jar
-RUN chmod go+r /tmp/opentelemetry-javaagent.jar
+ARG version=2.4.0
 
 USER appuser
+
+ADD --chown=appuser:appuser https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v$version/opentelemetry-javaagent.jar /tmp/opentelemetry-javaagent.jar
 
 ENV KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
 ENV KAFKA_BROKER_ID=1
