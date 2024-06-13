@@ -1,4 +1,4 @@
-module github.com/Datadog/opentelemetry-demo/src/productcatalogservice
+module github.com/opentelemetry/opentelemetry-demo/src/productcatalogservice
 
 go 1.22.0
 
