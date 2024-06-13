@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-FROM registry.ddbuild.io/images/mirror/php:8.3-cli as base
+FROM registry.ddbuild.io/images/mirror/php:8.2-cli as base
 
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions \
