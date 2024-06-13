@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,source=./src/productcatalogservice/go.mod,target=go.mod \
     --mount=type=bind,source=./src/productcatalogservice/tools.go,target=tools.go \
     go mod download \
-    && go list -e -f '{{range .Imports}}{{.}} {{end}}' tools.go | CGO_ENABLED=0 xargs go install -mod=readonly
+    && go list -e -f '{{range .Imports}}{{.}} {{end}}' tools.go | CGO_ENABLED=0 xargs go install
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=cache,target=/root/.cache/go-build \
