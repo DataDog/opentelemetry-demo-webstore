@@ -5,6 +5,7 @@
 FROM registry.ddbuild.io/images/mirror/golang:1.22-alpine AS builder
 
 WORKDIR /usr/src/app
+RUN chmod 700 /usr/src/app
 
 RUN apk update \
     && apk add --no-cache make protobuf-dev
