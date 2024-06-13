@@ -71,7 +71,6 @@ func initResource() *sdkresource.Resource {
 			sdkresource.WithProcess(),
 			sdkresource.WithContainer(),
 			sdkresource.WithHost(),
-			sdkresource.WithAttributes(attribute.String("datadog.container.tag.team", "otel")),
 		)
 		resource, _ = sdkresource.Merge(
 			sdkresource.Default(),
@@ -111,17 +110,6 @@ func initMeterProvider() *sdkmetric.MeterProvider {
 	)
 	otel.SetMeterProvider(mp)
 	return mp
-}
-
-func disallowedAttr(v ...string) attribute.Filter {
-	m := make(map[string]struct{}, len(v))
-	for _, s := range v {
-		m[s] = struct{}{}
-	}
-	return func(kv attribute.KeyValue) bool {
-		_, ok := m[string(kv.Key)]
-		return !ok
-	}
 }
 
 func main() {
