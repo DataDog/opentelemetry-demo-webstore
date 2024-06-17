@@ -8,7 +8,9 @@ WORKDIR /usr/src/app/
 RUN apk update \
     && apk add --no-cache make protobuf-dev
 
+COPY ./src/productcatalogservice/ ./    
 RUN go generate
+RUN go build -ldflags "-s -w" -o /go/bin/productcatalogservice/ ./ 
 
 FROM registry.ddbuild.io/images/mirror/alpine:latest AS release
 
