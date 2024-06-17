@@ -9,7 +9,6 @@ COPY ./src/productcatalogservice/ ./
 RUN go build -o /go/bin/productcatalogservice/
 
 # -----------------------------------------------------------------------------
-
 FROM registry.ddbuild.io/images/mirror/alpine:latest AS release
 
 WORKDIR /usr/src/app/
