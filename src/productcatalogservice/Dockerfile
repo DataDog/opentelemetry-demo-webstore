@@ -8,6 +8,7 @@ RUN apk update \
     && apk add --no-cache make protobuf-dev
 
 COPY ./src/productcatalogservice/ ./
+RUN go generate
 RUN go build -o /go/bin/productcatalogservice/
 
 # -----------------------------------------------------------------------------
