@@ -2,6 +2,8 @@ FROM registry.ddbuild.io/images/mirror/golang:1.22-alpine AS builder
 
 WORKDIR /usr/src/app/
 
+RUN apk add build-base protobuf-dev protoc
+
 RUN apk update \
     && apk add --no-cache make protobuf-dev
 
