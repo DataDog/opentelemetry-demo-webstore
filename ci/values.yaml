@@ -151,7 +151,7 @@ components:
   loadgenerator:
     resources:
       limits:
-        memory: 200Mi
+        memory: 500Mi
   productCatalogService:
     resources:
       limits:
