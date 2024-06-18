@@ -18,6 +18,7 @@ stages:
   tags: ["runner:docker"]
   image: $CI_IMAGE
   script:
+    - export DOCKER_BUILDKIT=1
     - TAG="v$CI_COMMIT_SHORT_SHA-$IMAGE_TAG_SUFFIX"
     - docker build --file $DOCKERFILE --tag $BUILD_SANDBOX_REGISTRY:$TAG --tag $BUILD_DEMO_REGISTRY:$TAG --label target=staging $CONTEXT
     - if [[ $CI_COMMIT_REF_NAME =~ -staging$ ]]; then

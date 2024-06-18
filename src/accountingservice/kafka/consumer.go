@@ -4,6 +4,7 @@ package kafka
 
 import (
 	"context"
+
 	pb "github.com/open-telemetry/opentelemetry-demo/src/accountingservice/genproto/oteldemo"
 
 	"github.com/IBM/sarama"

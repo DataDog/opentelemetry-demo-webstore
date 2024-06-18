@@ -22,15 +22,13 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
-	"go.opentelemetry.io/otel/sdk/instrumentation"
-	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelcodes "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -73,7 +71,6 @@ func initResource() *sdkresource.Resource {
 			sdkresource.WithProcess(),
 			sdkresource.WithContainer(),
 			sdkresource.WithHost(),
-			sdkresource.WithAttributes(attribute.String("datadog.container.tag.team", "otel")),
 		)
 		resource, _ = sdkresource.Merge(
 			sdkresource.Default(),
@@ -110,31 +107,9 @@ func initMeterProvider() *sdkmetric.MeterProvider {
 	mp := sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter)),
 		sdkmetric.WithResource(initResource()),
-		sdkmetric.WithView(
-			sdkmetric.NewView(
-				sdkmetric.Instrument{Scope: instrumentation.Scope{Name: "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"}},
-				sdkmetric.Stream{
-					AttributeFilter: disallowedAttr(
-						"net.sock.peer.port",
-						"net.sock.peer.addr",
-					),
-				},
-			),
-		),
 	)
 	otel.SetMeterProvider(mp)
 	return mp
-}
-
-func disallowedAttr(v ...string) attribute.Filter {
-	m := make(map[string]struct{}, len(v))
-	for _, s := range v {
-		m[s] = struct{}{}
-	}
-	return func(kv attribute.KeyValue) bool {
-		_, ok := m[string(kv.Key)]
-		return !ok
-	}
 }
 
 func main() {
@@ -153,9 +128,12 @@ func main() {
 		}
 		log.Println("Shutdown meter provider")
 	}()
-	openfeature.SetProvider(flagd.NewProvider())
+	err := openfeature.SetProvider(flagd.NewProvider())
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	err := runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second))
+	err = runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second))
 	if err != nil {
 		log.Fatal(err)
 	}

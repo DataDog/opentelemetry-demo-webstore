@@ -1,23 +1,12 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
+name: Test image generation
 
 on:
   push:
     paths:
       - 'src/**'
       - 'test/**'
-  workflow_call:
-    inputs:
-      push:
-        description: Should the images be pushed
-        default: false
-        required: false
-        type: boolean
-      version:
-        description: The version used when tagging the image
-        default: 'dev'
-        required: false
-        type: string
 
 jobs:
   build_and_push_images:

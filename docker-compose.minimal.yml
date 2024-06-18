@@ -1,12 +1,12 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
-version: '3.9'
 x-default-logging: &logging
   driver: "json-file"
   options:
     max-size: "5m"
     max-file: "2"
+    tag: "{{.Name}}"
 
 networks:
   default:
@@ -36,6 +36,7 @@ services:
       - "${AD_SERVICE_PORT}"
     environment:
       - AD_SERVICE_PORT
+      - FLAGD_HOST
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://${OTEL_COLLECTOR_HOST}:${OTEL_COLLECTOR_PORT_HTTP}
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
@@ -64,6 +65,7 @@ services:
       - "${CART_SERVICE_PORT}"
     environment:
       - CART_SERVICE_PORT
+      - FLAGD_HOST
       - REDIS_ADDR
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_RESOURCE_ATTRIBUTES
@@ -97,6 +99,7 @@ services:
       - CART_SERVICE_ADDR
       - CURRENCY_SERVICE_ADDR
       - EMAIL_SERVICE_ADDR
+      - FLAGD_HOST
       - PAYMENT_SERVICE_ADDR
       - PRODUCT_CATALOG_SERVICE_ADDR
       - SHIPPING_SERVICE_ADDR
@@ -126,7 +129,8 @@ services:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-currencyservice
     container_name: currency-service
     build:
-      context: ./src/currencyservice
+      context: ./
+      dockerfile: ./src/currencyservice/Dockerfile
       cache_from:
         - ${IMAGE_NAME}:${IMAGE_VERSION}-currencyservice
     deploy:
@@ -184,7 +188,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 200M
+          memory: 250M
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT}"
@@ -205,6 +209,9 @@ services:
       - PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - WEB_OTEL_SERVICE_NAME=frontend-web
+      - OTEL_COLLECTOR_HOST
+      - FLAGD_HOST
+      - FLAGD_PORT
     depends_on:
       adservice:
         condition: service_started
@@ -224,6 +231,8 @@ services:
         condition: service_started
       otelcol:
         condition: service_started
+      imageprovider:
+        condition: service_started
     logging: *logging
 
   # Frontend Proxy (Envoy)
@@ -237,14 +246,13 @@ services:
       resources:
         limits:
           memory: 50M
+    restart: unless-stopped
     ports:
       - "${ENVOY_PORT}:${ENVOY_PORT}"
       - 10000:10000
     environment:
       - FRONTEND_PORT
       - FRONTEND_HOST
-      - FEATURE_FLAG_SERVICE_PORT
-      - FEATURE_FLAG_SERVICE_HOST
       - LOCUST_WEB_HOST
       - LOCUST_WEB_PORT
       - GRAFANA_SERVICE_PORT
@@ -252,8 +260,14 @@ services:
       - JAEGER_SERVICE_PORT
       - JAEGER_SERVICE_HOST
       - OTEL_COLLECTOR_HOST
-      - OTEL_COLLECTOR_PORT
+      - IMAGE_PROVIDER_HOST
+      - IMAGE_PROVIDER_PORT
+      - OTEL_COLLECTOR_PORT_GRPC
+      - OTEL_COLLECTOR_PORT_HTTP
+      - OTEL_RESOURCE_ATTRIBUTES
       - ENVOY_PORT
+      - FLAGD_HOST
+      - FLAGD_PORT
     depends_on:
       frontend:
         condition: service_started
@@ -263,6 +277,33 @@ services:
         condition: service_started
       grafana:
         condition: service_started
+
+  # Imageprovider
+  imageprovider:
+    image: ${IMAGE_NAME}:${DEMO_VERSION}-imageprovider
+    container_name: imageprovider
+    build:
+      context: ./
+      dockerfile: ./src/imageprovider/Dockerfile
+      cache_from:
+        - ${IMAGE_NAME}:${IMAGE_VERSION}-imageprovider
+    deploy:
+      resources:
+        limits:
+          memory: 120M
+    restart: unless-stopped
+    ports:
+      - "${IMAGE_PROVIDER_PORT}"
+    environment:
+      - IMAGE_PROVIDER_PORT
+      - OTEL_COLLECTOR_HOST
+      - OTEL_COLLECTOR_PORT_GRPC
+      - OTEL_SERVICE_NAME=imageprovider
+      - OTEL_RESOURCE_ATTRIBUTES
+    depends_on:
+      otelcol:
+        condition: service_started
+    logging: *logging
 
   # Load Generator
   loadgenerator:
@@ -286,12 +327,19 @@ services:
       - LOCUST_HOST
       - LOCUST_HEADLESS
       - LOCUST_AUTOSTART
-      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://${OTEL_COLLECTOR_HOST}:4318/v1/traces
+      - LOCUST_BROWSER_TRAFFIC_ENABLED=false
+      - OTEL_EXPORTER_OTLP_ENDPOINT
+      - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=loadgenerator
       - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+      - LOCUST_WEB_HOST=0.0.0.0
+      - FLAGD_HOST
+      - FLAGD_PORT
     depends_on:
       frontend:
+        condition: service_started
+      flagd:
         condition: service_started
     logging: *logging
 
@@ -312,6 +360,7 @@ services:
     ports:
       - "${PAYMENT_SERVICE_PORT}"
     environment:
+      - FLAGD_HOST
       - PAYMENT_SERVICE_PORT
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
@@ -339,6 +388,7 @@ services:
     ports:
       - "${PRODUCT_CATALOG_SERVICE_PORT}"
     environment:
+      - FLAGD_HOST
       - PRODUCT_CATALOG_SERVICE_PORT
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
@@ -394,6 +444,7 @@ services:
     ports:
       - "${RECOMMENDATION_SERVICE_PORT}"
     environment:
+      - FLAGD_HOST
       - RECOMMENDATION_SERVICE_PORT
       - PRODUCT_CATALOG_SERVICE_ADDR
       - OTEL_PYTHON_LOG_CORRELATION=true
@@ -428,7 +479,7 @@ services:
     environment:
       - SHIPPING_SERVICE_PORT
       - QUOTE_SERVICE_ADDR
-      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://${OTEL_COLLECTOR_HOST}:${OTEL_COLLECTOR_PORT_GRPC}/v1/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://${OTEL_COLLECTOR_HOST}:${OTEL_COLLECTOR_PORT_GRPC}
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=shippingservice
     depends_on:
@@ -439,6 +490,31 @@ services:
   # ******************
   # Dependent Services
   # ******************
+  # Flagd, feature flagging service
+  flagd:
+    image: ${FLAGD_IMAGE}
+    container_name: flagd
+    deploy:
+      resources:
+        limits:
+          memory: 50M
+    environment:
+      - FLAGD_OTEL_COLLECTOR_URI=${OTEL_COLLECTOR_HOST}:${OTEL_COLLECTOR_PORT_GRPC}
+      - FLAGD_METRICS_EXPORTER=otel
+      - OTEL_RESOURCE_ATTRIBUTES
+      - OTEL_SERVICE_NAME=flagd
+    command: [
+      "start",
+      "--uri",
+      "file:./etc/flagd/demo.flagd.json"
+    ]
+    ports:
+      - 8013
+    volumes:
+      - ./src/flagd:/etc/flagd
+    logging:
+      *logging
+
   # Redis used by Cart service
   redis-cart:
     image: ${REDIS_IMAGE}

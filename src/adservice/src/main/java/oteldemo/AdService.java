@@ -12,6 +12,8 @@ import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.protobuf.services.*;
 import io.grpc.stub.StreamObserver;
 import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -19,6 +21,7 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
@@ -34,6 +37,8 @@ import org.apache.logging.log4j.Logger;
 import oteldemo.Demo.Ad;
 import oteldemo.Demo.AdRequest;
 import oteldemo.Demo.AdResponse;
+import oteldemo.problempattern.GarbageCollectionTrigger;
+import oteldemo.problempattern.CPULoad;
 import dev.openfeature.contrib.providers.flagd.FlagdOptions;
 import dev.openfeature.contrib.providers.flagd.FlagdProvider;
 import dev.openfeature.sdk.Client;
@@ -41,8 +46,6 @@ import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.MutableContext;
 import dev.openfeature.sdk.OpenFeatureAPI;
 import java.util.UUID;
-import oteldemo.Demo.GetFlagResponse;
-import oteldemo.FeatureFlagServiceGrpc.FeatureFlagServiceBlockingStub;
 
 
 public final class AdService {
@@ -80,11 +83,11 @@ public final class AdService {
                             "environment vars: AD_SERVICE_PORT must not be null")));
     healthMgr = new HealthStatusManager();
 
-        // Create a flagd instance with OpenTelemetry
+    // Create a flagd instance with OpenTelemetry
     FlagdOptions options =
-      FlagdOptions.builder()
-        .withGlobalTelemetry(true)
-        .build();
+        FlagdOptions.builder()
+            .withGlobalTelemetry(true)
+            .build();
 
     FlagdProvider flagdProvider = new FlagdProvider(options);
     // Set flagd as the OpenFeature Provider
@@ -129,6 +132,11 @@ public final class AdService {
 
   private static class AdServiceImpl extends oteldemo.AdServiceGrpc.AdServiceImplBase {
     
+    private static final String ADSERVICE_FAILURE = "adServiceFailure";
+    private static final String ADSERVICE_MANUAL_GC_FEATURE_FLAG = "adServiceManualGc";
+    private static final String ADSERVICE_HIGH_CPU_FEATURE_FLAG = "adServiceHighCpu";
+    private static final Client ffClient = OpenFeatureAPI.getInstance().getClient();
+    
     private AdServiceImpl() {}
 
     /**
@@ -148,6 +156,20 @@ public final class AdService {
         List<Ad> allAds = new ArrayList<>();
         AdRequestType adRequestType;
         AdResponseType adResponseType;
+
+        Baggage baggage = Baggage.fromContextOrNull(Context.current());
+        MutableContext evaluationContext = new MutableContext();
+        if (baggage != null) {
+          final String sessionId = baggage.getEntryValue("session.id");
+          span.setAttribute("session.id", sessionId);
+          evaluationContext.setTargetingKey(sessionId);
+          evaluationContext.add("session", sessionId);
+        } else {
+          logger.info("no baggage found in context");
+        }
+
+        CPULoad cpuload = CPULoad.getInstance();
+        cpuload.execute(ffClient.getBooleanValue(ADSERVICE_HIGH_CPU_FEATURE_FLAG, false, evaluationContext));
 
         span.setAttribute("app.ads.contextKeys", req.getContextKeysList().toString());
         span.setAttribute("app.ads.contextKeys.count", req.getContextKeysCount());
@@ -179,8 +201,14 @@ public final class AdService {
             Attributes.of(
                 adRequestTypeKey, adRequestType.name(), adResponseTypeKey, adResponseType.name()));
 
-        if (checkAdFailure()) {
-          throw new StatusRuntimeException(Status.RESOURCE_EXHAUSTED);
+        if (ffClient.getBooleanValue(ADSERVICE_FAILURE, false, evaluationContext)) {
+          throw new StatusRuntimeException(Status.UNAVAILABLE);
+        }
+
+        if (ffClient.getBooleanValue(ADSERVICE_MANUAL_GC_FEATURE_FLAG, false, evaluationContext)) {
+          logger.warn("Feature Flag " + ADSERVICE_MANUAL_GC_FEATURE_FLAG + " enabled, performing a manual gc now");
+          GarbageCollectionTrigger gct = new GarbageCollectionTrigger();
+          gct.doExecute();
         }
 
         AdResponse reply = AdResponse.newBuilder().addAllAds(allAds).build();
@@ -193,15 +221,6 @@ public final class AdService {
         logger.log(Level.WARN, "GetAds Failed with status {}", e.getStatus());
         responseObserver.onError(e);
       }
-    }
-
-    boolean checkAdFailure() {
-      Client client = OpenFeatureAPI.getInstance().getClient();
-      // TODO: Plumb the actual session ID from the frontend via baggage?
-      UUID uuid = UUID.randomUUID();
-      client.setEvaluationContext(new MutableContext().add("session", uuid.toString()));
-      Boolean boolValue = client.getBooleanValue("adServiceFailure", false);
-      return boolValue;
     }
   }
 
