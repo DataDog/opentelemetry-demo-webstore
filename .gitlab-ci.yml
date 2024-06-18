@@ -81,6 +81,12 @@ build-ci-image-frontendproxy:
     DOCKERFILE: src/frontendproxy/Dockerfile
     IMAGE_TAG_SUFFIX: frontendproxy
     CONTEXT: .
+build-ci-image-imageprovider:
+  !!merge <<: *build-ci-image
+  variables:
+    DOCKERFILE: src/imageprovider/Dockerfile
+    IMAGE_TAG_SUFFIX: imageprovider
+    CONTEXT: .    
 build-ci-image-loadgenerator:
   !!merge <<: *build-ci-image
   variables:
