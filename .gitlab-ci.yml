@@ -7,14 +7,13 @@ variables:
   BUILD_DEMO_REGISTRY: 172597598159.dkr.ecr.us-east-1.amazonaws.com/otel-demo
   BUILD_SANDBOX_REGISTRY: 601427279990.dkr.ecr.us-east-1.amazonaws.com/otel-demo
 stages:
-  - build
+  - build-push
   - prod-deploy
   - staging-deploy
-# =======================================================================
-# Build and deploy the images used for CI
-# =======================================================================
-.build-ci-image: &build-ci-image
-  stage: build
+
+# BUILD AND PUSH IMAGES
+.build-push-ci-image: &build-push-ci-image
+  stage: build-push
   tags: ["runner:docker"]
   image: $CI_IMAGE
   script:
@@ -27,98 +26,98 @@ stages:
     - if [[ $CI_COMMIT_REF_NAME == "prod" ]]; then
         docker push $BUILD_DEMO_REGISTRY:$TAG;
       fi
-build-ci-image-accountingservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-accountingservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/accountingservice/Dockerfile
     IMAGE_TAG_SUFFIX: accountingservice
     CONTEXT: .
-build-ci-image-adservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-adservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/adservice/Dockerfile
     IMAGE_TAG_SUFFIX: adservice
     CONTEXT: .
-build-ci-image-cartservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-cartservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/cartservice/src/Dockerfile
     IMAGE_TAG_SUFFIX: cartservice
     CONTEXT: .
-build-ci-image-checkoutservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-checkoutservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/checkoutservice/Dockerfile
     IMAGE_TAG_SUFFIX: checkoutservice
     CONTEXT: .
-build-ci-image-currencyservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-currencyservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/currencyservice/Dockerfile
     IMAGE_TAG_SUFFIX: currencyservice
     CONTEXT: src/currencyservice
-build-ci-image-emailservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-emailservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/emailservice/Dockerfile
     IMAGE_TAG_SUFFIX: emailservice
     CONTEXT: src/emailservice
-build-ci-image-frauddetectionservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-frauddetectionservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/frauddetectionservice/Dockerfile
     IMAGE_TAG_SUFFIX: frauddetectionservice
     CONTEXT: .
-build-ci-image-frontend:
-  !!merge <<: *build-ci-image
+build-push-ci-image-frontend:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/frontend/Dockerfile
     IMAGE_TAG_SUFFIX: frontend
     CONTEXT: .
-build-ci-image-frontendproxy:
-  !!merge <<: *build-ci-image
+build-push-ci-image-frontendproxy:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/frontendproxy/Dockerfile
     IMAGE_TAG_SUFFIX: frontendproxy
     CONTEXT: .
-build-ci-image-imageprovider:
-  !!merge <<: *build-ci-image
+build-push-ci-image-imageprovider:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/imageprovider/Dockerfile
     IMAGE_TAG_SUFFIX: imageprovider
     CONTEXT: .    
-build-ci-image-loadgenerator:
-  !!merge <<: *build-ci-image
+build-push-ci-image-loadgenerator:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/loadgenerator/Dockerfile
     IMAGE_TAG_SUFFIX: loadgenerator
     CONTEXT: .
-build-ci-image-paymentservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-paymentservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/paymentservice/Dockerfile
     IMAGE_TAG_SUFFIX: paymentservice
     CONTEXT: .
-build-ci-image-productcatalogservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-productcatalogservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/productcatalogservice/Dockerfile
     IMAGE_TAG_SUFFIX: productcatalogservice
     CONTEXT: .
-build-ci-image-quoteservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-quoteservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/quoteservice/Dockerfile
     IMAGE_TAG_SUFFIX: quoteservice
     CONTEXT: .
-build-ci-image-recommendationservice:
-  !!merge <<: *build-ci-image
+build-push-ci-image-recommendationservice:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/recommendationservice/Dockerfile
     IMAGE_TAG_SUFFIX: recommendationservice
     CONTEXT: .
-build-ci-image-shippingservice:
-  stage: build
+build-push-ci-image-shippingservice:
+  stage: build-push
   tags: ["runner:docker"]
   image: $CI_IMAGE
   script:
@@ -131,18 +130,20 @@ build-ci-image-shippingservice:
     DOCKERFILE: src/shippingservice/Dockerfile
     IMAGE_TAG_SUFFIX: shippingservice
     CONTEXT: .
-build-ci-image-kafka:
-  !!merge <<: *build-ci-image
+build-push-ci-image-kafka:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/kafka/Dockerfile
     IMAGE_TAG_SUFFIX: kafka
     CONTEXT: .
-build-ci-image-orderproducer:
-  !!merge <<: *build-ci-image
+build-push-ci-image-orderproducer:
+  !!merge <<: *build-push-ci-image
   variables:
     DOCKERFILE: src/orderproducerservice/Dockerfile
     IMAGE_TAG_SUFFIX: orderproducer
     CONTEXT: .
+
+# PROD DEPLOY DEMO / AGENT 
 .prod-deploy: &prod-deploy
   stage: prod-deploy
   tags: ["runner:docker", "size:large"]
@@ -161,6 +162,8 @@ build-ci-image-orderproducer:
     # # For debugging
     # - aws sts get-caller-identity
     - bash $SCRIPT $CLUSTER_NAME $CLUSTER_ARN $REGION $NAMESPACE
+
+# Demo env:otel
 prod-deploy-otel-demo-eks:
   !!merge <<: *prod-deploy
   variables:
@@ -169,6 +172,11 @@ prod-deploy-otel-demo-eks:
     CLUSTER_ARN: arn:aws:eks:us-east-1:172597598159:cluster/prod-eks-otel-a-us-east-1
     REGION: us-east-1
     NAMESPACE: otel
+    ZOOKEEPER_DEPLOYMENT: deployment.yaml
+    ORDERPRODUCER_DEPLOYMENT: deployment.yaml
+    REGISTRY: $BUILD_DEMO_REGISTRY
+
+# Demo env:otel-ingest
 prod-deploy-otel-ingest-demo-eks:
   !!merge <<: *prod-deploy
   variables:
@@ -177,6 +185,11 @@ prod-deploy-otel-ingest-demo-eks:
     CLUSTER_ARN: arn:aws:eks:us-east-1:172597598159:cluster/prod-eks-otel-ingest-a-usea-1
     REGION: us-east-1
     NAMESPACE: otel-ingest
+    ZOOKEEPER_DEPLOYMENT: deployment.yaml
+    ORDERPRODUCER_DEPLOYMENT: deployment.yaml
+    REGISTRY: $BUILD_DEMO_REGISTRY
+
+# Agent env:otel-ingest
 prod-deploy-otel-ingest-agent-eks:
   !!merge <<: *prod-deploy
   variables:
@@ -188,6 +201,8 @@ prod-deploy-otel-ingest-agent-eks:
     VALUES: ./ci/datadog-agent-values-prod.yaml
     RELEASE_NAME: datadog-agent
     DD_VALUES: ./ci/datadog-agent-ddvalues-prod.yaml
+
+# STAGING DEPLOY DEMO / AGENT 
 .staging-deploy: &staging-deploy
   stage: staging-deploy
   tags: ["runner:docker", "size:large"]
@@ -212,34 +227,76 @@ staging-deploy-otel-demo-eks:
   !!merge <<: *staging-deploy
   variables:
     NAMESPACE: otel-staging
-    VALUES: ./ci/values-staging.yaml
+    VALUES:
     NODE_GROUP: ng-3
     SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
+    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
+    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
+    REGISTRY: $BUILD_SANDBOX_REGISTRY
+
 # Demo env:otel-ingest-staging
 staging-deploy-otel-ingest-demo-eks:
   !!merge <<: *staging-deploy
   variables:
     NAMESPACE: otel-ingest-staging
-    VALUES: ./ci/values-ingest-staging.yaml
+    VALUES: 
     NODE_GROUP: ng-4
     SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
+    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
+    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
+    REGISTRY: $BUILD_SANDBOX_REGISTRY
+
+# Demo env:otel-gateway
+staging-deploy-gateway-demo-eks:
+  !!merge <<: *staging-deploy
+  variables:
+    NAMESPACE: otel-gateway
+    VALUES: ./ci/values-gateway.yaml
+    NODE_GROUP: ng-5
+    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
+    CLUSTER_NAME: dd-otel
+    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
+    REGION: us-east-1
+    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
+    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
+    REGISTRY: $BUILD_SANDBOX_REGISTRY
+
+# Demo env:otel-ds-gateway
+staging-deploy-ds-gateway-demo-eks:
+  !!merge <<: *staging-deploy
+  variables:
+    NAMESPACE: otel-ds-gateway
+    VALUES:
+    NODE_GROUP: ng-6
+    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
+    CLUSTER_NAME: dd-otel
+    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
+    REGION: us-east-1
+    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
+    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
+    REGISTRY: $BUILD_SANDBOX_REGISTRY
+
 # Demo env:dd-ingest-staging
 staging-deploy-dd-ingest-demo-eks:
   !!merge <<: *staging-deploy
   variables:
     NAMESPACE: dd-ingest-staging
-    VALUES: ./ci/values-dd-ingest-staging.yaml
+    VALUES: 
     NODE_GROUP: ng-7
     SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
+    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
+    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
+    REGISTRY: $BUILD_SANDBOX_REGISTRY
+
 # Agent env:otel-ingest-staging
 staging-deploy-otel-ingest-agent-eks:
   !!merge <<: *staging-deploy
@@ -264,25 +321,3 @@ staging-deploy-dd-ingest-agent-eks:
     VALUES: ./ci/datadog-agent-values-dd-staging.yaml
     DD_VALUES: ./ci/datadog-agent-values-dd.yaml
     RELEASE_NAME: datadog-agent-dd
-# Demo env:otel-gateway
-staging-deploy-gateway-demo-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: otel-gateway
-    VALUES: ./ci/values-gateway.yaml
-    NODE_GROUP: ng-5
-    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1
-# Demo env:otel-ds-gateway
-staging-deploy-ds-gateway-demo-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: otel-ds-gateway
-    VALUES: ./ci/values-ds-gateway.yaml
-    NODE_GROUP: ng-6
-    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1

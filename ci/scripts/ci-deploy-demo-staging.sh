@@ -15,29 +15,35 @@ region=$REGION
 namespace=$NAMESPACE
 nodeGroup=$NODE_GROUP
 values=$VALUES
+zookeeper_deployment=$ZOOKEEPER_DEPLOYMENT
+orderproducer_deployment=$ORDERPRODUCER_DEPLOYMENT
+registry=$REGISTRY
 
 install_demo() {
-  # Set the namespace and release name
   release_name="opentelemetry-demo"
 
-  # Deploy zookeeper which is not a default component.
-  sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/zookeeperservice/deployment-staging.yaml
-  kubectl apply -f ./src/zookeeperservice/deployment-staging.yaml -n "${namespace}"
-
-  # if repo already exists, helm 3+ will skip
-  helm --debug repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-
-  # --install will run `helm install` if not already present.
-  helm --debug upgrade "${release_name}" -n "${namespace}" open-telemetry/opentelemetry-demo --install \
+  # HELM COMMAND
+  helm_cmd= "helm --debug upgrade ${release_name} -n ${namespace} open-telemetry/opentelemetry-demo --install \
     -f ./ci/values.yaml \
-    -f $values \
     --set-string default.image.tag="v$CI_COMMIT_SHORT_SHA" \
-    --set-string default.image.repository="601427279990.dkr.ecr.us-east-1.amazonaws.com/otel-demo"
-  
-  # Deploy java order producer which is not a default component.
-  sed -i "s/PLACEHOLDER_COMMIT_SHA/v$CI_COMMIT_SHORT_SHA/g" ./src/orderproducerservice/deployment-staging.yaml
-  sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/orderproducerservice/deployment-staging.yaml
-  kubectl apply -f ./src/orderproducerservice/deployment-staging.yaml -n "${namespace}"
+    --set-string default.image.repository=${REGISTRY}"
+
+  # REPLACEMENTS
+  if [ -n "$nodegroup" ]; then
+      sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/zookeeperservice/${zookeeper_deployment}
+      sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/orderproducerservice/${orderproducer_deployment}
+      helm_cmd+=" --set default.schedulingRules.nodeSelector.\"alpha\\.eksctl\\.io/nodegroup-name\"=${nodegroup}"
+  fi
+  if [ -n "$values" ]; then
+      helm_cmd+=" -f $values"
+  fi
+  sed -i "s/PLACEHOLDER_COMMIT_SHA/v$CI_COMMIT_SHORT_SHA/g" ./src/orderproducerservice/${orderproducer_deployment}
+
+  # COMMANDS
+  kubectl apply -f ./src/zookeeperservice/${zookeeper_deployment} -n "${namespace}"
+  helm --debug repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+  eval $helm_cmd
+  kubectl apply -f ./src/orderproducerservice/${orderproducer_deployment} -n "${namespace}"
 }
 
 ###########################################################################################################
