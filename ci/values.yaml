@@ -144,10 +144,6 @@ components:
     resources:
       limits:
         memory: 200Mi
-  redis:
-    resources:
-      limits:
-        memory: 200Mi
   loadgenerator:
     resources:
       limits:
