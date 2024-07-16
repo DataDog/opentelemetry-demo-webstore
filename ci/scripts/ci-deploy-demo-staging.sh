@@ -37,7 +37,6 @@ install_demo() {
   if [ -n "$values" ]; then
       helm_cmd+=" -f $values"
   fi
-  sed -i "s/PLACEHOLDER_COMMIT_SHA/v$CI_COMMIT_SHORT_SHA/g" ./src/orderproducerservice/${orderproducer_deployment}
 
   # COMMANDS
   kubectl apply -f ./src/zookeeperservice/${zookeeper_deployment} -n "${namespace}"
