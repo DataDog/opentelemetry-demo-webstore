@@ -23,7 +23,7 @@ install_demo() {
   release_name="opentelemetry-demo"
 
   # HELM COMMAND
-  helm_cmd= "helm --debug upgrade ${release_name} -n ${namespace} open-telemetry/opentelemetry-demo --install \
+  helm_cmd="helm --debug upgrade ${release_name} -n ${namespace} open-telemetry/opentelemetry-demo --install \
     -f ./ci/values.yaml \
     --set-string default.image.tag="v$CI_COMMIT_SHORT_SHA" \
     --set-string default.image.repository=${REGISTRY}"
