@@ -29,10 +29,10 @@ install_demo() {
     --set-string default.image.repository=${REGISTRY}"
 
   # REPLACEMENTS
-  if [ -n "$nodegroup" ]; then
+  if [ -n "$nodeGroup" ]; then
       sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/zookeeperservice/${zookeeper_deployment}
       sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/orderproducerservice/${orderproducer_deployment}
-      helm_cmd+=" --set default.schedulingRules.nodeSelector.\"alpha\\.eksctl\\.io/nodegroup-name\"=${nodegroup}"
+      helm_cmd+=" --set default.schedulingRules.nodeSelector.\"alpha\\.eksctl\\.io/nodegroup-name\"=${nodeGroup}"
   fi
   if [ -n "$values" ]; then
       helm_cmd+=" -f $values"
