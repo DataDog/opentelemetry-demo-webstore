@@ -198,8 +198,9 @@ prod-deploy-otel-ingest-agent-eks:
     CLUSTER_ARN: arn:aws:eks:us-east-1:172597598159:cluster/prod-eks-otel-ingest-a-usea-1
     REGION: us-east-1
     NAMESPACE: otel-ingest
-    VALUES: ./ci/agent-values/prod-unified.yaml
     RELEASE_NAME: datadog-agent
+    NODE_GROUP:
+
 
 # STAGING DEPLOY DEMO / AGENT 
 .staging-deploy: &staging-deploy
@@ -305,8 +306,9 @@ staging-deploy-otel-ingest-agent-eks:
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
-    VALUES: ./ci/agent-values/otel-staging-unified.yaml
     RELEASE_NAME: datadog-agent
+    NODE_GROUP: ng-4
+
 # Agent env:dd-ingest-staging
 staging-deploy-dd-ingest-agent-eks:
   !!merge <<: *staging-deploy
@@ -316,5 +318,5 @@ staging-deploy-dd-ingest-agent-eks:
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
-    VALUES: ./ci/agent-values/dd-staging-unified.yaml
     RELEASE_NAME: datadog-agent-dd
+    NODE_GROUP: ng-7

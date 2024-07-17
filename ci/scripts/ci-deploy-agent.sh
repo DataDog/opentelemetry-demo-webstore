@@ -14,14 +14,21 @@ region=$REGION
 namespace=$NAMESPACE
 releaseName=$RELEASE_NAME
 values=$VALUES
+nodegroup=$NODE_GROUP
 
 install_agent() {
   # if repo already exists, helm 3+ will skip
   helm repo add datadog https://helm.datadoghq.com
 
   # --install will run `helm install` if not already present.
-  helm upgrade "${releaseName}" -n "${namespace}" datadog/datadog --install \
-    -f "${values}"
+  helm_cmd=helm upgrade "${releaseName}" -n "${namespace}" datadog/datadog --install \
+    -f ./ci/agent-values/values.yaml \
+    --set datadog.tags=env:"${namespace}" \
+
+  if [ -n "$nodegroup" ]; then
+      helm_cmd+=" --set agents.nodeSelector.\"alpha\\.eksctl\\.io/nodegroup-name\"=${nodegroup}"
+  fi
+
 }
 
 ###########################################################################################################

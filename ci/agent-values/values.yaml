@@ -1,18 +1,18 @@
 agents:
-  nodeSelector:
-    alpha.eksctl.io/nodegroup-name: ng-7
   image:
     tag: 7.51.0-rc.1
     tagSuffix: jmx
 datadog:
-  tags:
-    - "env:dd-ingest-staging"
   apiKey: $DD_API_KEY
-  apm:
-    portEnabled: true
-    port: 8126
   logs:
     enabled: true
+  otlp:
+    receiver:
+      protocols:
+        grpc:
+          enabled: true
+        http:
+          enabled: true
   env:
     - name: DD_API_KEY
       valueFrom:
