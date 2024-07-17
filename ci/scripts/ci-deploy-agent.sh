@@ -13,7 +13,6 @@ clusterArn=$CLUSTER_ARN
 region=$REGION
 namespace=$NAMESPACE
 releaseName=$RELEASE_NAME
-ddValues=$DD_VALUES
 values=$VALUES
 
 install_agent() {
@@ -22,7 +21,6 @@ install_agent() {
 
   # --install will run `helm install` if not already present.
   helm upgrade "${releaseName}" -n "${namespace}" datadog/datadog --install \
-    -f "${ddValues}" \
     -f "${values}"
 }
 

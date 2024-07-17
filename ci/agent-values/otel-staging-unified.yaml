@@ -1,8 +1,13 @@
 agents:
+  nodeSelector:
+    alpha.eksctl.io/nodegroup-name: ng-4
   image:
-    tag: 7.51.0-rc.1
-    tagSuffix: jmx
+    repository: docker.io/datadog/agent-dev
+    tag: stanley-liu-top-level-spans-poc-py3-jmx
+    doNotCheckTag: true
 datadog:
+  tags:
+    - "env:otel-ingest-staging"
   apiKey: $DD_API_KEY
   logs:
     enabled: true
@@ -20,3 +25,4 @@ datadog:
           name: datadog-secrets
           key: api-key
           optional: false
+

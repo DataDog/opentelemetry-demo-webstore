@@ -198,9 +198,8 @@ prod-deploy-otel-ingest-agent-eks:
     CLUSTER_ARN: arn:aws:eks:us-east-1:172597598159:cluster/prod-eks-otel-ingest-a-usea-1
     REGION: us-east-1
     NAMESPACE: otel-ingest
-    VALUES: ./ci/agent-values/datadog-agent-values-prod.yaml
+    VALUES: ./ci/agent-values/prod-unified.yaml
     RELEASE_NAME: datadog-agent
-    DD_VALUES: ./ci/agent-values/datadog-agent-ddvalues-prod.yaml
 
 # STAGING DEPLOY DEMO / AGENT 
 .staging-deploy: &staging-deploy
@@ -306,8 +305,7 @@ staging-deploy-otel-ingest-agent-eks:
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
-    VALUES: ./ci/agent-values/datadog-agent-values-staging.yaml
-    DD_VALUES: ./ci/agent-values/datadog-agent-ddvalues-staging.yaml
+    VALUES: ./ci/agent-values/otel-staging-unified.yaml
     RELEASE_NAME: datadog-agent
 # Agent env:dd-ingest-staging
 staging-deploy-dd-ingest-agent-eks:
@@ -318,6 +316,5 @@ staging-deploy-dd-ingest-agent-eks:
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
-    VALUES: ./ci/agent-values/datadog-agent-values-dd-staging.yaml
-    DD_VALUES: ./ci/agent-values/datadog-agent-values-dd.yaml
+    VALUES: ./ci/agent-values/dd-staging-unified.yaml
     RELEASE_NAME: datadog-agent-dd
