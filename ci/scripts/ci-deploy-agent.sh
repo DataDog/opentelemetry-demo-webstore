@@ -13,7 +13,6 @@ clusterArn=$CLUSTER_ARN
 region=$REGION
 namespace=$NAMESPACE
 releaseName=$RELEASE_NAME
-values=$VALUES
 nodegroup=$NODE_GROUP
 
 install_agent() {
