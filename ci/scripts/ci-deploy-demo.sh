@@ -24,14 +24,14 @@ install_demo() {
 
   # HELM COMMAND
   helm_cmd="helm --debug upgrade ${release_name} -n ${namespace} open-telemetry/opentelemetry-demo --install \
-    -f ./ci/values.yaml \
+    -f ./ci/demo-values/values.yaml \
     --set-string default.image.tag="v$CI_COMMIT_SHORT_SHA" \
     --set-string default.image.repository=${REGISTRY}"
 
   # REPLACEMENTS
   if [ -n "$nodeGroup" ]; then
-      # sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/zookeeperservice/${zookeeper_deployment}
-      # sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/orderproducerservice/${orderproducer_deployment}
+      sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/zookeeperservice/${zookeeper_deployment}
+      sed -i "s/PLACEHOLDER_NODE_GROUP/$nodeGroup/g" ./src/orderproducerservice/${orderproducer_deployment}
       helm_cmd+=" --set default.schedulingRules.nodeSelector.\"alpha\\.eksctl\\.io/nodegroup-name\"=${nodeGroup}"
   fi
   if [ -n "$values" ]; then
