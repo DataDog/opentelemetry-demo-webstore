@@ -229,7 +229,7 @@ staging-deploy-otel-demo-eks:
     NAMESPACE: otel-staging
     VALUES:
     NODE_GROUP: ng-3
-    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
+    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
@@ -244,7 +244,7 @@ staging-deploy-otel-ingest-demo-eks:
     NAMESPACE: otel-ingest-staging
     VALUES: 
     NODE_GROUP: ng-4
-    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
+    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
@@ -259,7 +259,7 @@ staging-deploy-gateway-demo-eks:
     NAMESPACE: otel-gateway
     VALUES: ./ci/values-gateway.yaml
     NODE_GROUP: ng-5
-    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
+    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
@@ -274,7 +274,7 @@ staging-deploy-ds-gateway-demo-eks:
     NAMESPACE: otel-ds-gateway
     VALUES:
     NODE_GROUP: ng-6
-    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
+    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
@@ -289,7 +289,7 @@ staging-deploy-dd-ingest-demo-eks:
     NAMESPACE: dd-ingest-staging
     VALUES: 
     NODE_GROUP: ng-7
-    SCRIPT: ./ci/scripts/ci-deploy-demo-staging.sh
+    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
