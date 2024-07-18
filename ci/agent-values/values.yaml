@@ -3,6 +3,7 @@ agents:
     tag: 7.55.0
     tagSuffix: jmx
 datadog:
+  apiKey: $KEY
   logs:
     enabled: true
   otlp:
@@ -13,7 +14,7 @@ datadog:
         http:
           enabled: true
   env:
-    - name: DD_API_KEY
+    - name: KEY
       valueFrom:
         secretKeyRef:
           name: datadog-secrets
