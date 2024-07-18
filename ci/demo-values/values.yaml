@@ -36,13 +36,9 @@ default:
         fieldRef:
           fieldPath: status.hostIP
     - name: DD_AGENT_HOST
-      valueFrom:
-        fieldRef:
-          fieldPath: status.hostIP
+      value: $(HOST_IP)
     - name: OTEL_COLLECTOR_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: status.hostIP
+      value: $(HOST_IP)
     - name: OTEL_RESOURCE_ATTRIBUTES
       value: >-
         service.name=$(OTEL_SERVICE_NAME),
