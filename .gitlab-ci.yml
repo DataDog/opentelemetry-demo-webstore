@@ -298,7 +298,7 @@ staging-deploy-dd-ingest-demo-eks:
     REGISTRY: $BUILD_SANDBOX_REGISTRY
 
 # Demo env:converged-agent-staging
-staging-deploy-dd-ingest-demo-eks:
+staging-deploy-converged-agent-demo-eks:
   !!merge <<: *staging-deploy
   variables:
     NAMESPACE: converged-agent-staging
