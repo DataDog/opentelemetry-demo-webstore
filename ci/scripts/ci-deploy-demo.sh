@@ -22,7 +22,7 @@ registry=$REGISTRY
 install_demo() {
   release_name="opentelemetry-demo"
 
-  # helm uninstall ${release_name} -n ${namespace}
+  helm uninstall ${release_name} -n ${namespace}
   
   # HELM COMMAND
   helm_cmd="helm --debug upgrade ${release_name} -n ${namespace} open-telemetry/opentelemetry-demo --install \
