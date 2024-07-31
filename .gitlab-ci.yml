@@ -297,6 +297,21 @@ staging-deploy-dd-ingest-demo-eks:
     ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
     REGISTRY: $BUILD_SANDBOX_REGISTRY
 
+# Demo env:converged-agent-staging
+staging-deploy-dd-ingest-demo-eks:
+  !!merge <<: *staging-deploy
+  variables:
+    NAMESPACE: converged-agent-staging
+    VALUES: 
+    NODE_GROUP: ng-8
+    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
+    CLUSTER_NAME: dd-otel
+    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
+    REGION: us-east-1
+    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
+    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
+    REGISTRY: $BUILD_SANDBOX_REGISTRY
+
 # Agent env:otel-ingest-staging
 staging-deploy-otel-ingest-agent-eks:
   !!merge <<: *staging-deploy
@@ -326,7 +341,7 @@ staging-deploy-converged-agent-staging-eks:
   !!merge <<: *staging-deploy
   variables:
     NAMESPACE: converged-agent-staging
-    SCRIPT: ./ci/scripts/ci-deploy-agent.sh
+    SCRIPT: ./ci/scripts/ci-deploy-converged-agent.sh
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
