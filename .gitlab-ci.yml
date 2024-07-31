@@ -320,3 +320,15 @@ staging-deploy-dd-ingest-agent-eks:
     REGION: us-east-1
     RELEASE_NAME: datadog-agent-dd
     NODE_GROUP: ng-7
+
+# Agent env:converged-agent-staging
+staging-deploy-converged-agent-staging-eks:
+  !!merge <<: *staging-deploy
+  variables:
+    NAMESPACE: converged-agent-staging
+    SCRIPT: ./ci/scripts/ci-deploy-agent.sh
+    CLUSTER_NAME: dd-otel
+    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
+    REGION: us-east-1
+    RELEASE_NAME: converged-agent-staging
+    NODE_GROUP: ng-8
