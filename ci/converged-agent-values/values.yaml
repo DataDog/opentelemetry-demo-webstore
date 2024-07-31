@@ -1,6 +1,6 @@
 agents:
   image:
-    tag: 7.55.0
+    tag: 7.55.2
     tagSuffix: jmx
 datadog:
   apiKeyExistingSecret: datadog-secrets
@@ -134,7 +134,7 @@ datadog:
         logs:
           encoding: "json"
           initial_fields:
-            - service: "otel-collector"
+            - service: "converged-agent"
       pipelines:
         metrics:
           receivers: [otlp, datadog/connector]
