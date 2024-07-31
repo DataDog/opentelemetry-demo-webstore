@@ -345,5 +345,5 @@ staging-deploy-converged-agent-staging-eks:
     CLUSTER_NAME: dd-otel
     CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
     REGION: us-east-1
-    RELEASE_NAME: converged-agent-staging
+    RELEASE_NAME: converged-agent
     NODE_GROUP: ng-8
