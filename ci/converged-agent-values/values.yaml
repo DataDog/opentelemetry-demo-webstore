@@ -1,6 +1,6 @@
 agents:
   image:
-    tag: 7.55.2
+    tag: 7-ot-beta
     tagSuffix: jmx
 datadog:
   apiKeyExistingSecret: datadog-secrets
