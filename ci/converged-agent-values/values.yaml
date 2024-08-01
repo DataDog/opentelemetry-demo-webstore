@@ -3,7 +3,6 @@ agents:
   image:
     repository: datadog/agent-dev
     tag: nightly-ot-beta-main-jmx
-    tagSuffix: jmx
 datadog:
   apiKeyExistingSecret: datadog-secrets
   otelCollector:
