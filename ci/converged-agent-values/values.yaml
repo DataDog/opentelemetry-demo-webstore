@@ -1,3 +1,4 @@
+registry: docker.io/datadog
 agents:
   image:
     repository: datadog/agent-dev
