@@ -1,22 +1,12 @@
 registry: docker.io/datadog
 agents:
-  containers: 
-    otelAgent: 
-      ports:
-        - containerPort: 4317
-          hostPort: 4317
-          name: grpcport
-          protocol: UDP
-        - containerPort: 4318
-          hostPort: 4318
-          name: httpport
-          protocol: UDP
   image:
     repository: datadog/agent-dev
     tag: nightly-ot-beta-main-jmx
 datadog:
   apiKeyExistingSecret: datadog-secrets
   otelCollector:
+    ports: `[{"containerPort":"4317", "hostPort":"4317", "name":"otel-grpc"},{"containerPort":"4318", "hostPort":"4318", "name":"otel-http"}]`
     enabled: true
     config: |
     receivers:
