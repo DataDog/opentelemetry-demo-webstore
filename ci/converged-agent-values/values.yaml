@@ -6,7 +6,15 @@ agents:
 datadog:
   apiKeyExistingSecret: datadog-secrets
   otelCollector:
-    ports: `[{"containerPort":"4317", "hostPort":"4317", "name":"otel-grpc"},{"containerPort":"4318", "hostPort":"4318", "name":"otel-http"}]`
+    ports:
+      - containerPort: 4317
+        hostPort: 4317
+        name: grpcport
+        protocol: UDP
+      - containerPort: 4318
+        hostPort: 4318
+        name: httpport
+        protocol: UDP
     enabled: true
     config: |
     receivers:
