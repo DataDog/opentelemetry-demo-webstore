@@ -3,8 +3,8 @@ agents:
   containers: 
     otelAgent: 
       ports:
-        - hostPort: 4317
-        - hostPort: 4318
+      - hostPort: 4317
+      - hostPort: 4318
   image:
     repository: datadog/agent-dev
     tag: nightly-ot-beta-main-jmx
