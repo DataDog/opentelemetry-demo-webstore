@@ -1,0 +1,15 @@
+agents:
+  image:
+    tag: 7.55.0
+    tagSuffix: jmx
+datadog:
+  apiKeyExistingSecret: datadog-secrets
+  logs:
+    enabled: true
+  otlp:
+    receiver:
+      protocols:
+        grpc:
+          enabled: true
+        http:
+          enabled: true

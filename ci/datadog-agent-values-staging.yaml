@@ -1,6 +1,0 @@
-agents:
-  nodeSelector:
-    alpha.eksctl.io/nodegroup-name: ng-4
-datadog:
-  tags:
-    - "env:otel-ingest-staging"
