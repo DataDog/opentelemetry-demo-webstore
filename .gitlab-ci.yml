@@ -143,65 +143,6 @@ build-push-ci-image-orderproducer:
     IMAGE_TAG_SUFFIX: orderproducer
     CONTEXT: .
 
-# PROD DEPLOY DEMO / AGENT 
-.prod-deploy: &prod-deploy
-  stage: prod-deploy
-  tags: ["runner:docker", "size:large"]
-  image: $CI_IMAGE
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "prod"'
-  script:
-    # # For debugging
-    #- aws sts get-caller-identity
-    - >-
-      TEMP_AWS_ACCESS_KEY_ID=$(aws ssm get-parameter --region us-east-1 --name ci.opentelemetry-demo.eks_access_key --with-decryption --query Parameter.Value --out text)
-    - >-
-      TEMP_AWS_SECRET_ACCESS_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.opentelemetry-demo.eks_secret_access_key --with-decryption --query Parameter.Value --out text)
-    - export AWS_ACCESS_KEY_ID=$TEMP_AWS_ACCESS_KEY_ID
-    - export AWS_SECRET_ACCESS_KEY=$TEMP_AWS_SECRET_ACCESS_KEY
-    # # For debugging
-    # - aws sts get-caller-identity
-    - bash $SCRIPT $CLUSTER_NAME $CLUSTER_ARN $REGION $NAMESPACE
-
-# Demo env:otel
-prod-deploy-otel-demo-eks:
-  !!merge <<: *prod-deploy
-  variables:
-    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
-    CLUSTER_NAME: prod-eks-otel-a-us-east-1
-    CLUSTER_ARN: arn:aws:eks:us-east-1:172597598159:cluster/prod-eks-otel-a-us-east-1
-    REGION: us-east-1
-    NAMESPACE: otel
-    ZOOKEEPER_DEPLOYMENT: deployment.yaml
-    ORDERPRODUCER_DEPLOYMENT: deployment.yaml
-    REGISTRY: $BUILD_DEMO_REGISTRY
-
-# Demo env:otel-ingest
-prod-deploy-otel-ingest-demo-eks:
-  !!merge <<: *prod-deploy
-  variables:
-    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
-    CLUSTER_NAME: prod-eks-otel-ingest-a-usea-1
-    CLUSTER_ARN: arn:aws:eks:us-east-1:172597598159:cluster/prod-eks-otel-ingest-a-usea-1
-    REGION: us-east-1
-    NAMESPACE: otel-ingest
-    ZOOKEEPER_DEPLOYMENT: deployment.yaml
-    ORDERPRODUCER_DEPLOYMENT: deployment.yaml
-    REGISTRY: $BUILD_DEMO_REGISTRY
-
-# Agent env:otel-ingest
-prod-deploy-otel-ingest-agent-eks:
-  !!merge <<: *prod-deploy
-  variables:
-    SCRIPT: ./ci/scripts/ci-deploy-agent.sh
-    CLUSTER_NAME: prod-eks-otel-ingest-a-usea-1
-    CLUSTER_ARN: arn:aws:eks:us-east-1:172597598159:cluster/prod-eks-otel-ingest-a-usea-1
-    REGION: us-east-1
-    NAMESPACE: otel-ingest
-    RELEASE_NAME: datadog-agent
-    NODE_GROUP:
-
-
 # STAGING DEPLOY DEMO / AGENT 
 .staging-deploy: &staging-deploy
   stage: staging-deploy
@@ -222,80 +163,6 @@ prod-deploy-otel-ingest-agent-eks:
     # - aws sts get-caller-identity
     - bash $SCRIPT
 
-# Demo env:otel-staging
-staging-deploy-otel-demo-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: otel-staging
-    VALUES:
-    NODE_GROUP: ng-3
-    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1
-    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
-    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
-    REGISTRY: $BUILD_SANDBOX_REGISTRY
-
-# Demo env:otel-ingest-staging
-staging-deploy-otel-ingest-demo-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: otel-ingest-staging
-    VALUES: 
-    NODE_GROUP: ng-4
-    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1
-    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
-    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
-    REGISTRY: $BUILD_SANDBOX_REGISTRY
-
-# Demo env:otel-gateway
-staging-deploy-gateway-demo-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: otel-gateway
-    VALUES: ./ci/demo-values/values-gateway.yaml
-    NODE_GROUP: ng-5
-    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1
-    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
-    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
-    REGISTRY: $BUILD_SANDBOX_REGISTRY
-
-# Demo env:otel-ds-gateway
-staging-deploy-ds-gateway-demo-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: otel-ds-gateway
-    VALUES:
-    NODE_GROUP: ng-6
-    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1
-    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
-    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
-    REGISTRY: $BUILD_SANDBOX_REGISTRY
-
-# Demo env:dd-ingest-staging
-staging-deploy-dd-ingest-demo-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: dd-ingest-staging
-    VALUES: 
-    NODE_GROUP: ng-7
-    SCRIPT: ./ci/scripts/ci-deploy-demo.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1
-    ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
-    ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
-    REGISTRY: $BUILD_SANDBOX_REGISTRY
 
 # Demo env:converged-agent-staging
 staging-deploy-converged-agent-demo-eks:
@@ -311,30 +178,6 @@ staging-deploy-converged-agent-demo-eks:
     ZOOKEEPER_DEPLOYMENT: deployment-staging.yaml
     ORDERPRODUCER_DEPLOYMENT: deployment-staging.yaml
     REGISTRY: $BUILD_SANDBOX_REGISTRY
-
-# Agent env:otel-ingest-staging
-staging-deploy-otel-ingest-agent-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: otel-ingest-staging
-    SCRIPT: ./ci/scripts/ci-deploy-agent.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1
-    RELEASE_NAME: datadog-agent
-    NODE_GROUP: ng-4
-
-# Agent env:dd-ingest-staging
-staging-deploy-dd-ingest-agent-eks:
-  !!merge <<: *staging-deploy
-  variables:
-    NAMESPACE: dd-ingest-staging
-    SCRIPT: ./ci/scripts/ci-deploy-agent.sh
-    CLUSTER_NAME: dd-otel
-    CLUSTER_ARN: "arn:aws:eks:us-east-1:601427279990:cluster/dd-otel"
-    REGION: us-east-1
-    RELEASE_NAME: datadog-agent-dd
-    NODE_GROUP: ng-7
 
 # Agent env:converged-agent-staging
 staging-deploy-converged-agent-staging-eks:
